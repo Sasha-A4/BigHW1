@@ -7,6 +7,7 @@
 #include <cassert>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 using namespace std;
 
@@ -14,44 +15,24 @@ constexpr size_t ROWS = 36, COLS = 84;
 constexpr size_t STEPS = 1'000'000;
 constexpr std::array<pair<int, int>, 4> DIRECTIONS{{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
 
-char grid[ROWS][COLS + 1] = {
-        "####################################################################################",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                       .........                                  #",
-        "#..............#            #           .........                                  #",
-        "#..............#            #           .........                                  #",
-        "#..............#            #           .........                                  #",
-        "#..............#            #                                                      #",
-        "#..............#            #                                                      #",
-        "#..............#            #                                                      #",
-        "#..............#            #                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............#                                                      #",
-        "#..............#............################                     #                 #",
-        "#...........................#....................................#                 #",
-        "#...........................#....................................#                 #",
-        "#...........................#....................................#                 #",
-        "##################################################################                 #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "#                                                                                  #",
-        "####################################################################################",
-};
+
+char grid[ROWS][COLS + 1];
+
+void loadGridFromFile(const string& filename) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "can't open " << filename << endl;
+        exit(1);
+    }
+
+    string line;
+    for (size_t i = 0; i < ROWS; ++i) {
+        getline(file, line);
+        strcpy(grid[i], line.c_str());
+    }
+
+    file.close();
+}
 
 struct FixedPoint {
     constexpr FixedPoint(int val): value(val << 16) {}
@@ -290,6 +271,10 @@ bool propagateMove(int x, int y, bool isFirstMove) {
 int directions[ROWS][COLS]{};
 
 int main() {
+    std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
+    freopen("main.txt", "r", stdin);
+    loadGridFromFile("main.txt");
+
     rhoTable[' '] = 0.01;
     rhoTable['.'] = 1000;
     FixedPoint gravity = 0.1;
